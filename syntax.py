@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 import sys, re
+from nltk import stem
 
 def string_to_tree(s):
     s = s.replace("(", "( ")
@@ -68,9 +69,11 @@ def get_subtree(rels, dependant):
     except:
         pass
     return elems
+
+stemmer = stem.LancasterStemmer()
     
 def get_words(wds, words):
-    return map(lambda x: words[x], wds)
+    return map(lambda x: stemmer.stem(words[x]), wds)
 
 def extract_relation(deps):
     words, rels = parse_dependencies(deps)
@@ -107,6 +110,14 @@ def extract_relation(deps):
         extracted words. 
 '''
 
+'''
+    10-12-2012
+        Start to process whole files, split groups of relations about
+        the same sentence, and work on each group.
+'''
+
+
+
 
 test = \
 ''' attr(is-2, What-1)
@@ -134,8 +145,26 @@ another_test = \
 
 
 if __name__ == "__main__":
-    print extract_relation(test.splitlines())
-    print extract_relation(another_test.splitlines())
+    with open(sys.argv[1], "r") as infile:
+        lines = [l.rstrip("\n") for l in infile.readlines()]
+
+    sentences = []
+    while "" in lines:
+        sentences.append(lines[:lines.index("")])
+        lines = lines[lines.index("")+1:]
+
+    relations = []
+    for s in sentences:
+        print s
+        relations.append(extract_relation(s))
+    
+    print relations
+    for r in relations:
+        print len(r[1]), r
+    # print extract_relation(test.splitlines())
+    # print extract_relation(another_test.splitlines())
     # print parse_dependencies(test.splitlines())
     # print dep_re.search(test).groups()
     # print string_to_tree(open(sys.argv[1], "r").read())
+
+
